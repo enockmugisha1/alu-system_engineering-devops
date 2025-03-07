@@ -1,4 +1,4 @@
 # bash proj
-Host alu-server
+Host 6458-web-01
     PasswordAuthentication no
     IdentifyFile ~/.ssh/school
