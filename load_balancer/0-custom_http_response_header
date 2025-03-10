@@ -1,17 +1,11 @@
 #!/usr/bin/env bash
-# Install Nginx and configure custom header
+# returns a custom header on request
 
-# Set hostname
-if [[ $(hostname) == "ubuntu" ]]; then
-  sudo hostnamectl set-hostname "6383-$(curl -s http://169.254.169.254/latest/meta-data/instance-id)"
-fi
+apt-get -y update
+apt-get -y install nginx
 
-# Update system and install Nginx
-sudo apt update -y
-sudo apt install -y nginx
+sudo sed -i "47i\\\tadd_header X-Served-By $HOSTNAME;" /etc/nginx/sites-available/default
+echo "Holberton School" |sudo tee /var/www/html/index.html
+echo "Ceci n'est pas une page" | sudo tee /usr/share/nginx/html/404.html
 
-# Add the custom header to track which server is responding
-sudo sed -i "47i\\\tadd_header X-Served-By $(hostname);" /etc/nginx/sites-available/default
-
-# Restart Nginx to apply changes
-sudo systemctl restart nginx
+sudo service nginx start
