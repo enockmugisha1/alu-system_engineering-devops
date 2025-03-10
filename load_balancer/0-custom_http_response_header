@@ -1,39 +1,17 @@
 #!/usr/bin/env bash
-# Script to configure an Ubuntu server with Nginx, a custom 404 page, and a custom response header.
+# Install Nginx and configure custom header
 
-set -e  # Exit immediately if any command fails
+# Set hostname
+if [[ $(hostname) == "ubuntu" ]]; then
+  sudo hostnamectl set-hostname "6383-$(curl -s http://169.254.169.254/latest/meta-data/instance-id)"
+fi
 
-# Install Nginx
-sudo apt-get update -y
-sudo apt-get install -y nginx
+# Update system and install Nginx
+sudo apt update -y
+sudo apt install -y nginx
 
-# Allow HTTP traffic through firewall
-sudo ufw allow "Nginx HTTP"
+# Add the custom header to track which server is responding
+sudo sed -i "47i\\\tadd_header X-Served-By $(hostname);" /etc/nginx/sites-available/default
 
-# Create a custom 404 error page
-echo "Ceci n'est pas une page" | sudo tee /usr/share/nginx/html/custom_404.html > /dev/null
-
-# Modify Nginx configuration to use custom 404 page
-sudo tee -a /etc/nginx/sites-available/default > /dev/null <<EOF
-
-error_page 404 /custom_404.html;
-location = /custom_404.html {
-    root /usr/share/nginx/html;
-    internal;
-}
-EOF
-
-# Add custom HTTP response header
-HOSTNAME=$(hostname)
-sudo tee -a /etc/nginx/sites-available/default > /dev/null <<EOF
-
-server {
-    add_header X-Served-By $HOSTNAME;
-}
-EOF
-
-# Validate and restart Nginx
-sudo nginx -t && sudo systemctl restart nginx
-
-echo "Nginx has been configured successfully with a custom 404 page and HTTP response header."
-
+# Restart Nginx to apply changes
+sudo systemctl restart nginx
