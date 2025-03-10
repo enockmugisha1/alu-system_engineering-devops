@@ -1,9 +1,21 @@
 #!/usr/bin/env bash
-# Script to configure an Ubuntu server with Nginx and a custom response header
+# Script to configure an Ubuntu server with Nginx, a custom 404 page, and a custom response header
 
 # Update and install Nginx
 sudo apt-get update -y
 sudo apt-get install -y nginx
+
+# Allow Nginx through the firewall
+sudo ufw allow "Nginx HTTP"
+
+# Create a custom 404 page
+echo "Ceci n'est pas une page" | sudo tee /usr/share/nginx/html/custom_404.html
+
+# Add custom 404 handling in the Nginx config
+newlines=$'\n\terror_page 404 /custom_404.html;\n\tlocation = /custom_404.html {\n\t\troot /usr/share/nginx/html;\n\t\tinternal;\n\t}'
+
+# Insert the new 404 error page configuration at line 27
+sudo sed -i "27i $newlines" /etc/nginx/sites-available/default
 
 # Get the hostname of the server
 HOSTNAME=$(hostname)
